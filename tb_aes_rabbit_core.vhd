@@ -8,6 +8,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 use std.textio.all;
 use IEEE.STD_LOGIC_TEXTIO.ALL;
+use std.env.all;
 
 entity tb_aes_rabbit_core is
 end entity tb_aes_rabbit_core;
@@ -58,7 +59,7 @@ begin
         wait for CLK_PERIOD / 2;
     end process clk_process;
 
-    -- Process chính đieu khiển testbench
+    -- Process chính điều khiển testbench
     stimulus_process: process
         variable output_line : line;
     begin
@@ -89,18 +90,34 @@ begin
         
         -- Tắt tín hiệu valid sau 1 chu kỳ
         tb_key_valid <= '0';
-        -- Thêm một vài chu kỳ để đảm bảo hệ thống ổn định
-        wait for CLK_PERIOD * 2;
-        
+
+        -- Chờ quá trình sinh khoá hoàn tất
+        wait until tb_keys_ready = '1' and rising_edge(tb_clk);
+
         -- Cung cấp plaintext và tín hiệu valid trong 1 chu kỳ
         tb_plaintext_in  <= FIPS_PLAINTEXT;
-       tb_data_valid_in <= '1';
-        
+        tb_data_valid_in <= '1';
+
         wait until rising_edge(tb_clk);
-        
+
         -- Tắt tín hiệu valid
-         tb_data_valid_in <= '0';
-        wait; -- Dừng process này
+        tb_data_valid_in <= '0';
+        -- Chờ cho tới khi có dữ liệu mã hóa đầu ra
+        wait until tb_data_valid_out = '1';
+        wait until rising_edge(tb_clk);
+
+        -- Kiểm tra kết quả với vector chuẩn
+        assert tb_ciphertext_out = FIPS_CIPHERTEXT
+            report "Ciphertext mismatch: got " & to_hstring(tb_ciphertext_out) &
+                   " expected " & to_hstring(FIPS_CIPHERTEXT)
+            severity failure;
+
+        report "Ciphertext matches expected vector" severity note;
+
+        -- Kết thúc mô phỏng
+        std.env.stop;
+
+        wait; -- an toàn
 
     end process stimulus_process;
 

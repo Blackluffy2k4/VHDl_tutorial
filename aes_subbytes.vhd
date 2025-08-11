@@ -29,11 +29,12 @@ architecture behaviour of AES_SUBBYTES is
         );
     end component;
 BEGIN
+    -- Mỗi byte trong state được xử lý theo thứ tự big-endian
     sbox_gen0: for i in 0 to 15 generate
-        sbox_inst0: component AES_SBOX -- Sửa ở đây
+        sbox_inst0: component AES_SBOX
             port map (
-                SBOX_IN  => data_in_sub(8*i+7 downto 8*i),
-                SBOX_OUT => data_out_sub(8*i+7 downto 8*i)
+                SBOX_IN  => DATA_IN_SUB(127 - i*8 downto 120 - i*8),
+                SBOX_OUT => DATA_OUT_SUB(127 - i*8 downto 120 - i*8)
             );
     end generate sbox_gen0;
     ------------------------------------------------------- 
