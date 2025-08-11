@@ -28,12 +28,20 @@ architecture behavioral of AES_KEY_EXPANSION_128_PIPELINE is
     end component;
 
     type T_FSM_STATE is (S_IDLE, S_CALC);
-    signal current_state : T_FSM_STATE;
+    --
+    -- Các thanh ghi trạng thái cần có giá trị khởi tạo rõ ràng
+    -- để tránh cảnh báo "metavalue" khi mô phỏng và bảo đảm
+    -- hành vi xác định ngay từ thời điểm 0 ns.
+    --
+    signal current_state : T_FSM_STATE := S_IDLE;
 
-    signal round_counter  : integer range 0 to 11;
-    signal round_keys_reg : keyblock_128;
+    -- Đếm số vòng khóa đã sinh ra (0..10 cho AES‑128)
+    signal round_counter  : integer range 0 to 11 := 0;
 
-    -- T�n hi?u cho logic t? h?p
+    -- Lưu trữ toàn bộ 11 round‑key
+    signal round_keys_reg : keyblock_128 := (others => (others => '0'));
+
+    -- Tín hi?u cho logic t? h?p
     signal temp_word, rot_word, sub_word_out : std_logic_vector(31 downto 0);
     signal rcon_out       : std_logic_vector(7 downto 0);
     signal rcon_in_signal : std_logic_vector(3 downto 0);
@@ -41,13 +49,13 @@ architecture behavioral of AES_KEY_EXPANSION_128_PIPELINE is
     signal next_w0, next_w1, next_w2, next_w3 : std_logic_vector(31 downto 0);
 
 begin
-    -- G�n �au ra truc tiep tu thanh ghi
+    -- Gán ðau ra truc tiep tu thanh ghi
     ROUND_KEYS_OUT <= round_keys_reg;
 
     -- =============================================================
     -- 1.(COMBINATIONAL LOGIC)
     -- =============================================================
-    -- Lay c�c word cua kh�a vong tr�oc �� tu thanh ghi
+    -- Lay các word cua khóa vong trýoc ðó tu thanh ghi
     prev_w0 <= round_keys_reg(round_counter - 1)(127 downto 96) when round_counter > 0 else (others => '0');
     prev_w1 <= round_keys_reg(round_counter - 1)(95 downto 64)  when round_counter > 0 else (others => '0');
     prev_w2 <= round_keys_reg(round_counter - 1)(63 downto 32)  when round_counter > 0 else (others => '0');
@@ -68,7 +76,7 @@ begin
     -- temp_word
     temp_word <= sub_word_out xor (rcon_out & x"000000");
 
-    -- T�nh c�c word tiep theo
+    -- Tính các word tiep theo
     next_w0 <= prev_w0 xor temp_word;
     next_w1 <= prev_w1 xor next_w0;
     next_w2 <= prev_w2 xor next_w1;
@@ -78,7 +86,7 @@ begin
     -- =============================================================
     -- 2. (SEQUENTIAL LOGIC)
     -- =============================================================
-    -- Process n�y xu ly tat ca c�c thanh ghi v� trang th�i cua FSM.
+    -- Process này xu ly tat ca các thanh ghi và trang thái cua FSM.
     fsm_proc: process(CLK)
     begin
         if rising_edge(CLK) then
@@ -92,7 +100,7 @@ begin
                     when S_IDLE =>
                         KEYS_READY <= '1';
                         if KEY_VALID = '1' then
-                            -- nap kh�a goc v� chuyen trang th�i
+                            -- nap khóa goc và chuyen trang thái
                             round_keys_reg(0) <= KEY_IN;
                             round_counter     <= 1;
                             KEYS_READY        <= '0';
@@ -100,7 +108,7 @@ begin
                         end if;
 
                     when S_CALC =>
-                        -- L�u kh�a vong vua ��oc t�nh to�n 
+                        -- Lýu khóa vong vua ðýoc tính toán 
                         round_keys_reg(round_counter) <= next_w0 & next_w1 & next_w2 & next_w3;
 
                         -- Kiem tra 

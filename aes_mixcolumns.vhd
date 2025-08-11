@@ -24,13 +24,13 @@ architecture dataflow of AES_MIXCOLUMNS is
 
 begin
 
-    -- T�ch 128 bit �au v�o th�nh 16 byte theo thu tu state array
+    -- Tách 128 bit ðau vào thành 16 byte theo thu tu state array
     -- (Byte 0 = MSB)
     byte_separator: for i in 0 to 15 generate
         s_in_bytes(i) <= DATA_IN_MIXCOL( (127-i*8) downto (120-i*8) );
     end generate;
 
-    -- T�nh gi� tri nh�n 2 cho moi byte
+    -- Tính giá tri nhân 2 cho moi byte
     xtime_gen: for i in 0 to 15 generate
         xtime_inst: component AES_XTIME
             port map(
@@ -39,13 +39,13 @@ begin
             );
     end generate;
 
-    -- Thuc hien nh�n ma tran cho 4 cot
+    -- Thuc hien nhân ma tran cho 4 cot
     mix_columns_gen: for c in 0 to 3 generate
-        -- Chu so cua 4 byte trong cot hien tai
-        constant b0 : integer := c;
-        constant b1 : integer := c + 4;
-        constant b2 : integer := c + 8;
-        constant b3 : integer := c + 12;
+        -- Chỉ số của 4 byte trong cột hiện tại (đánh theo cột)
+        constant b0 : integer := c*4;
+        constant b1 : integer := c*4 + 1;
+        constant b2 : integer := c*4 + 2;
+        constant b3 : integer := c*4 + 3;
     begin
         -- out[0] = (2*in[0]) xor (3*in[1]) xor (1*in[2]) xor (1*in[3])
         DATA_OUT_MIXCOL( (127-b0*8) downto (120-b0*8) ) <= s_xtime_bytes(b0) xor (s_xtime_bytes(b1) xor s_in_bytes(b1)) xor s_in_bytes(b2) xor s_in_bytes(b3);

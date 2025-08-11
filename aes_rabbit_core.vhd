@@ -7,7 +7,7 @@ library work;
 use work.AES_MODE_PK.all;
 
 -- =================================================================
--- KHAI B¡O ENTITY
+-- KHAI B√ÅO ENTITY
 -- =================================================================
 entity AES_RABBIT_CORE is
     port(
@@ -28,7 +28,7 @@ end entity AES_RABBIT_CORE;
 ------------------------------------------------------------------
 architecture structural of AES_RABBIT_CORE is
 
-    -- 1. KHAI B¡O C¡C COMPONENT (trong architecture)
+    -- 1. KHAI B√ÅO C√ÅC COMPONENT (trong architecture)
     component AES_KEY_EXPANSION_128_PIPELINE is
         port (
             CLK            : in  std_logic;
@@ -75,11 +75,11 @@ architecture structural of AES_RABBIT_CORE is
         );
     end component;
 
-    -- 2. KHAI B¡O C¡C TÕN HIEU NOI BO (trong architecture)
+    -- 2. KHAI B√ÅO C√ÅC T√çN HIEU NOI BO (trong architecture)
     signal s_round_keys      : keyblock_128;
     signal s_pipeline_enable : std_logic;
 
-    -- Mang chua du lieu giua c·c tang pipeline
+    -- Mang chua du lieu giua c√°c tang pipeline
     type T_PIPE_ARRAY is array (0 to 11) of std_logic_vector(127 downto 0);
     signal pipe_data_in  : T_PIPE_ARRAY;
     signal pipe_data_out : T_PIPE_ARRAY;
@@ -108,7 +108,7 @@ begin
 
     -- 4. DATAPATH 
     
-    -- Tang au v‡o
+    -- Tang √∞au v√†o
     pipe_data_in(0) <= PLAINTEXT_IN;
 
     -- Tang 0: Initial AddKey
@@ -119,17 +119,15 @@ begin
             DATA_OUT => pipe_data_out(0)
         );
 
-    -- Thanh ghi giua tang 0 v‡ 1
+    -- Thanh ghi giua tang 0 v√† 1
     reg_pipe_0_proc: process(CLK)
     begin
         if rising_edge(CLK) then
-            if s_pipeline_enable = '1' then
-                pipe_data_in(1) <= pipe_data_out(0);
-            end if;
+            pipe_data_in(1) <= pipe_data_out(0);
         end if;
     end process;
 
-    -- T?ng 1 en 9
+    -- T?ng 1 √∞en 9
     Gen_Standard_Rounds: for i in 1 to 9 generate
     begin
         round_func_inst: component AES_ROUND_FUNCTION
@@ -142,14 +140,12 @@ begin
         reg_pipe_i_proc: process(CLK)
         begin
             if rising_edge(CLK) then
-                if s_pipeline_enable = '1' then
-                    pipe_data_in(i + 1) <= pipe_data_out(i);
-                end if;
+                pipe_data_in(i + 1) <= pipe_data_out(i);
             end if;
         end process;
     end generate Gen_Standard_Rounds;
 
-    -- Tang 10: (khÙng cÛ MixColumns)
+    -- Tang 10: (kh√¥ng c√≥ MixColumns)
     final_round_inst: component AES_FINAL_ROUND
         port map (
             DATA_IN      => pipe_data_in(10),
@@ -157,13 +153,11 @@ begin
             DATA_OUT     => pipe_data_out(10)
         );
 
-    -- Thanh ghi giua tang 10 v‡ 11
+    -- Thanh ghi giua tang 10 v√† 11
     reg_pipe_10_proc: process(CLK)
     begin
         if rising_edge(CLK) then
-            if s_pipeline_enable = '1' then
-                pipe_data_in(11) <= pipe_data_out(10);
-            end if;
+            pipe_data_in(11) <= pipe_data_out(10);
         end if;
     end process;
 
