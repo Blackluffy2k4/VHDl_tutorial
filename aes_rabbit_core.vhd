@@ -41,7 +41,7 @@ architecture structural of AES_RABBIT_CORE is
     end component;
 
     component AES_CONTROL_FSM_PIPELINE is
-        generic (PIPELINE_DEPTH : integer := 11);
+        generic (PIPELINE_DEPTH : integer := 12);
         port (
             CLK             : in  std_logic;
             RESET           : in  std_logic;
