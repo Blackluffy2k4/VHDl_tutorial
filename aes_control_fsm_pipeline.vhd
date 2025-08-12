@@ -44,6 +44,7 @@ begin
     DATA_VALID_OUT <= valid_shifter(PIPELINE_DEPTH - 1);
 
 
-    PIPELINE_ENABLE <= '1' when valid_shifter /= ZEROS else '0';
+    PIPELINE_ENABLE <= '1' when (valid_shifter /= ZEROS) or (DATA_VALID_IN = '1') else '0';
+
 
 end architecture behavioral;
