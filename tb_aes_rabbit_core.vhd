@@ -80,10 +80,8 @@ begin
         -- Giai đoạn 2: Nạp khóa (Key Loading)
         -- =================================================================
         
-        -- Cho cho đến khi module Key Expansion sẵn sàng (KEYS_READY = '1')
-        wait until tb_keys_ready = '1' and rising_edge(tb_clk);
         
-        -- Cung cấp khóa và tín hiệu valid trong 1 chu kỳ
+          -- Sau reset, cung cấp khóa ngay lập tức
         tb_key_in    <= FIPS_KEY;
         tb_key_valid <= '1';
         wait until rising_edge(tb_clk);
@@ -120,5 +118,6 @@ begin
         wait; -- an toàn
 
     end process stimulus_process;
+
 
 end architecture test;
