@@ -109,7 +109,14 @@ begin
     -- 4. DATAPATH 
     
     -- Tang ðau vào
-    pipe_data_in(0) <= PLAINTEXT_IN;
+    load_plaintext_proc: process(CLK)
+    begin
+        if rising_edge(CLK) then
+            if DATA_VALID_IN = '1' then
+                pipe_data_in(0) <= PLAINTEXT_IN;
+            end if;
+        end if;
+    end process;
 
     -- Tang 0: Initial AddKey
     initial_addkey_inst: component AES_INITIAL_ADDKEY
@@ -120,10 +127,12 @@ begin
         );
 
     -- Thanh ghi giua tang 0 và 1
-    reg_pipe_0_proc: process(CLK)
+     reg_pipe_0_proc: process(CLK)
     begin
         if rising_edge(CLK) then
-            pipe_data_in(1) <= pipe_data_out(0);
+            if DATA_VALID_IN = '1' or s_pipeline_enable = '1' then
+                pipe_data_in(1) <= pipe_data_out(0);
+            end if;
         end if;
     end process;
 
@@ -140,7 +149,9 @@ begin
         reg_pipe_i_proc: process(CLK)
         begin
             if rising_edge(CLK) then
-                pipe_data_in(i + 1) <= pipe_data_out(i);
+                if DATA_VALID_IN = '1' or s_pipeline_enable = '1' then
+                    pipe_data_in(i + 1) <= pipe_data_out(i);
+                end if;
             end if;
         end process;
     end generate Gen_Standard_Rounds;
@@ -154,10 +165,12 @@ begin
         );
 
     -- Thanh ghi giua tang 10 và 11
-    reg_pipe_10_proc: process(CLK)
+     reg_pipe_10_proc: process(CLK)
     begin
         if rising_edge(CLK) then
-            pipe_data_in(11) <= pipe_data_out(10);
+            if DATA_VALID_IN = '1' or s_pipeline_enable = '1' then
+                pipe_data_in(11) <= pipe_data_out(10);
+            end if;
         end if;
     end process;
 
@@ -166,3 +179,4 @@ begin
 
 
 end architecture structural;
+
